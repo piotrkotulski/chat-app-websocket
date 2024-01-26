@@ -15,15 +15,26 @@ function login(event) {
         alert('Please enter your name.');
     } else {
         userName = userNameInput.value;
+        socket.emit('join', userName);
         loginForm.classList.remove('show');
         messagesSection.classList.add('show');
     }
 }
 
-function addMessage(author, content) {
+socket.on('newUser', (message) => {
+    addMessage('Chat Bot', message, true);
+});
+
+socket.on('removeUser', (message) => {
+    addMessage('Chat Bot', message, true);
+});
+
+function addMessage(author, content, isBotMessage = false) {
     const message = document.createElement('li');
     message.classList.add('message', 'message--received');
-    if (author === userName) {
+    if (isBotMessage) {
+        message.classList.add('message--bot');
+    } else if (author === userName) {
         message.classList.add('message--self');
     }
     message.innerHTML = `
@@ -40,7 +51,7 @@ function sendMessage(event) {
         alert('Please type a message.');
     } else {
         addMessage(userName, messageContent);
-        socket.emit('message', { author: userName, content: messageContent });
+        socket.emit('message', {author: userName, content: messageContent});
         messageContentInput.value = '';
     }
 }
@@ -48,4 +59,4 @@ function sendMessage(event) {
 loginForm.addEventListener('submit', login);
 addMessageForm.addEventListener('submit', sendMessage);
 
-socket.on('message', ({ author, content }) => addMessage(author, content));
+socket.on('message', ({author, content}) => addMessage(author, content));
